@@ -8,7 +8,8 @@ exports.getById = function(id, callback) {
     }
     var mongoclient = mongoHandler.getDbClient();
     // Open the connection to the server
-    mongoclient.open(function(err, mongoclient) {
+    mongoclient.connect('mongodb://cgary:yougo4it@ds113871.mlab.com:13871/traider',function(err, mongoclient) {
+        if(err) throw err.Message;
         var dbName = mongoHandler.dbName();
         var db = mongoclient.db(dbName);
         var mongoId;
@@ -38,12 +39,11 @@ exports.getAll = function(callback) {
         throw "Call to db method must include callback function"
     }
     var mongoclient = mongoHandler.getDbClient();
-    mongoclient.open(function(err, mongoclient) {
+    mongoclient.connect('mongodb://cgary:yougo4it@ds113871.mlab.com:13871/traider',function(err, mongoclient) {
 
         if (err) {
             mongoclient.close();
             throw err.Message;
-            return;
         }
 
         var dbName = mongoHandler.dbName();
@@ -54,12 +54,15 @@ exports.getAll = function(callback) {
             if (err) {
                 mongoclient.close();
                 throw err.Message;
-                return;
             } else {
                 result.toArray(function(err, resultArray) {
                     // Close the connection
+                    if(err) throw err.Message;
+                    
                     mongoclient.close();
-
+                    if(typeof(resultArray) == 'undefined'){
+                        resultArray = [];
+                    }
                     console.log("Got data: " + resultArray.length + " records.");
                     return callback(resultArray);
 
@@ -72,12 +75,10 @@ exports.getAll = function(callback) {
 
 exports.insert = function(data, callback) {
     var mongoclient = mongoHandler.getDbClient();
-    mongoclient.open(function(err, mongoclient) {
+    mongoclient.connect('mongodb://cgary:yougo4it@ds113871.mlab.com:13871/traider',function(err, mongoclient) {
 
         if (err) {
-            mongoclient.close();
             throw err.Message;
-            return;
         }
 
         var dbName = mongoHandler.dbName();
@@ -86,10 +87,8 @@ exports.insert = function(data, callback) {
 
         db.collection(collectionName).insert(data, function(err, result) {
             if (err) {
-
                 mongoclient.close();
                 throw err.Message;
-                return;
             } else if (callback === null && typeof(callback) !== "function") {
                 mongoclient.close();
                 return callback(result);
